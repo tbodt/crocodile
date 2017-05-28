@@ -52,6 +52,8 @@ U0 CrocAvatar(CDoc *doc, U8 *author_id, U8 *avatar)
     GrFloodFill(m,17,17);
     GrBlot(av,0,0,m);
     BMPWrite(av_file,av);
+    DCDel(av);
+    DCDel(m);
   };
   DocBMP(doc,av_file);
   Free(av_buffer);
