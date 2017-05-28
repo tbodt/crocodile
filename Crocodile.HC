@@ -44,6 +44,14 @@ U0 CrocAvatar(CDoc *doc, U8 *author_id, U8 *avatar)
     size=Str2I64(HGBD_PARAM_BUF);
     BlkRead(HGBD,av_buffer,1,(size/BLK_SIZE)+1);
     FileWrite(av_file,av_buffer,size);
+    CDC *av=BMPRead(av_file);
+    CDC *m=DCNew(32,32);
+    DCFill(m,WHITE);
+    m->color=TRANSPARENT;
+    GrCircle(m,16,16,16);
+    GrFloodFill(m,17,17);
+    GrBlot(av,0,0,m);
+    BMPWrite(av_file,av);
   };
   DocBMP(doc,av_file);
   Free(av_buffer);
@@ -77,15 +85,14 @@ U0 CrocUpdMsgs()
   DocBottom(discord_msgs->put_doc);
 }
 
-U0 CrocSendMsg()
+U0 CrocSendMsg(U8 *msg)
 {
   ZeroParamBuf;
   StrCpy(HGBD_PARAM_BUF,CROC_TOKEN);
   StrCpy(HGBD_PARAM_BUF+256,CROC_CHAN);
   WriteParamBuf;
-  BlkWrite(HGBD,CROC_MSG,1,(StrLen(CROC_MSG)/BLK_SIZE)+1);
+  BlkWrite(HGBD,msg,1,(StrLen(msg)/BLK_SIZE)+1);
   HGExec(CROC_SENDMSG);
-  StrCpy(CROC_MSG,"");
 }
 
 U0 CrocUpdChan()
@@ -99,10 +106,6 @@ U0 CrocUpdChan()
   ReadParamBuf;
   StrPrint(buf, "#%s: %s\n", HGBD_PARAM_BUF, HGBD_PARAM_BUF+256);
   StrCpy(discord_msgs->task_title,buf);
-  if (StrCmp(CROC_MSG,"")!=0)
-  {
-    CrocSendMsg;
-  };
   if (StrCmp(CROC_LMID,HGBD_PARAM_BUF+128)!=0)
   {
     StrCpy(CROC_LMID,HGBD_PARAM_BUF+128);
@@ -129,3 +132,4 @@ XTalk(discord_msgs,"StrCpy(Fs->task_title,\"\");\n");
 Sleep(100);
 DocClear(discord_msgs->put_doc);
 discord_msgloop = Spawn(&CrocUpdLoop);
+
