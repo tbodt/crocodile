@@ -26,7 +26,7 @@ U8 CROC_MSG[1024];
 U0 CrocAvatar(CDoc *doc, U8 *author_id, U8 *avatar)
 {
   U8 *av_buffer=CAlloc(4096);
-  if (StrCmp(avatar,"")==0) { return; };
+  if (StrCmp(avatar,"")==0 || StrCmp(avatar,"None")==0) { Free(av_buffer); return; };
   U8 av_trunc[64];
   U8 av_file[64];
   StrCpy(av_trunc,avatar);

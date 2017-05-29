@@ -84,40 +84,41 @@ def CrocGetMsgs():
     r_token = HGBD_PARAM_BUF[:HGBD_PARAM_BUF.find('\x00')]
     r_chan_id = HGBD_PARAM_BUF[256:HGBD_PARAM_BUF.find('\x00',256)]
     msgs_cnt = 0
+    ZeroParamBuf()
     try:
         croc_cmd = str(Crocodile.getchan_cmd)
         croc_cmd = croc_cmd.replace('DISCORD_TOKEN',r_token)
         croc_cmd = croc_cmd.replace('DISCORD_CHANNEL',r_chan_id + '/messages')
         msgs_json = json.loads(subprocess.Popen(croc_cmd,shell=True,stdin=subprocess.PIPE,stdout=subprocess.PIPE).communicate()[0])
         msgs_cnt = len(msgs_json)
+        msg_ofs = BLK_SIZE
+        msgs_json.reverse()
+        for msg in msgs_json:
+            os.lseek(HGBD,msg_ofs,os.SEEK_SET)
+            os.write(HGBD, '\x00'*2048)
+            os.lseek(HGBD,msg_ofs,os.SEEK_SET)
+            os.write(HGBD,msg['id']+'\x00')
+            msg_ofs += 64
+            os.lseek(HGBD,msg_ofs,os.SEEK_SET)
+            os.write(HGBD,msg['timestamp'][:19].replace('T',' ')+'\x00')
+            msg_ofs += 64
+            os.lseek(HGBD,msg_ofs,os.SEEK_SET)
+            os.write(HGBD,msg['author']['username']+'\x00')
+            msg_ofs += 64
+            os.lseek(HGBD,msg_ofs,os.SEEK_SET)
+            os.write(HGBD,str(msg['author']['id'])+'\x00')
+            msg_ofs += 64
+            os.lseek(HGBD,msg_ofs,os.SEEK_SET)
+            os.write(HGBD,str(msg['author']['avatar'])+'\x00')
+            msg_ofs += 64
+            os.lseek(HGBD,msg_ofs,os.SEEK_SET)
+            os.write(HGBD,msg['content'].encode('utf8')+'\x00')
+            msg_ofs += 1024
+        os.lseek(HGBD,0,os.SEEK_SET)
+        os.write(HGBD,str(msgs_cnt))
     except:
-        pass
-    ZeroParamBuf()
-    os.lseek(HGBD,0,os.SEEK_SET)
-    os.write(HGBD,str(msgs_cnt))
-    msg_ofs = BLK_SIZE
-    msgs_json.reverse()
-    for msg in msgs_json:
-        os.lseek(HGBD,msg_ofs,os.SEEK_SET)
-        os.write(HGBD, '\x00'*2048)
-        os.lseek(HGBD,msg_ofs,os.SEEK_SET)
-        os.write(HGBD,msg['id']+'\x00')
-        msg_ofs += 64
-        os.lseek(HGBD,msg_ofs,os.SEEK_SET)
-        os.write(HGBD,msg['timestamp'][:19].replace('T',' ')+'\x00')
-        msg_ofs += 64
-        os.lseek(HGBD,msg_ofs,os.SEEK_SET)
-        os.write(HGBD,msg['author']['username']+'\x00')
-        msg_ofs += 64
-        os.lseek(HGBD,msg_ofs,os.SEEK_SET)
-        os.write(HGBD,msg['author']['id']+'\x00')
-        msg_ofs += 64
-        os.lseek(HGBD,msg_ofs,os.SEEK_SET)
-        os.write(HGBD,msg['author']['avatar']+'\x00')
-        msg_ofs += 64
-        os.lseek(HGBD,msg_ofs,os.SEEK_SET)
-        os.write(HGBD,msg['content'].encode('utf8')+'\x00')
-        msg_ofs += 1024
+        os.lseek(HGBD,0,os.SEEK_SET)
+        os.write(HGBD,str(0))
     conn.send(chr(CROC_GETMSGS))
 
 def CrocSendMsg():
