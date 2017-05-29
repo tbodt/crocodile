@@ -128,10 +128,13 @@ U0 CrocUpdLoop()
 
 StrCpy(CROC_LMID,"");
 StrCpy(CROC_MSG,"");
-WinTileHorz;
-WinFocus(Fs);
+discord_msgs->win_left=0x2B;
+discord_msgs->win_right=0x4E;
+discord_msgs->win_top=0x03;
+discord_msgs->win_bottom=0x0F;
 XTalk(discord_msgs,"StrCpy(Fs->task_title,\"\");\n");
 Sleep(100);
 DocClear(discord_msgs->put_doc);
 discord_msgloop = Spawn(&CrocUpdLoop);
+
 

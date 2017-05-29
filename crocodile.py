@@ -129,8 +129,8 @@ def CrocSendMsg():
     os.lseek(HGBD,BLK_SIZE,os.SEEK_SET)
     HGBD_MSG_BUF = os.read(HGBD,BLK_SIZE*2)
     r_msg = HGBD_MSG_BUF[:HGBD_MSG_BUF.find('\x00')]
-    r_msg = r_msg.replace('"','\"')
-    r_msg = r_msg.replace('\'','\\\'')
+    r_msg = r_msg.replace('\xFF','\"')
+    r_msg = r_msg.replace('\'','\u0027')
     try:
         croc_cmd = str(Crocodile.sendmsg_cmd)
         croc_cmd = croc_cmd.replace('DISCORD_TOKEN',r_token)
