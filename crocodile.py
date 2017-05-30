@@ -94,6 +94,10 @@ def CrocGetMsgs():
         msg_ofs = BLK_SIZE
         msgs_json.reverse()
         for msg in msgs_json:
+            attachments = ''
+            if 'attachments' in msg:
+                for att in msg['attachments']:
+                    attachments += '\n' + att['url']
             os.lseek(HGBD,msg_ofs,os.SEEK_SET)
             os.write(HGBD, '\x00'*2048)
             os.lseek(HGBD,msg_ofs,os.SEEK_SET)
@@ -112,7 +116,7 @@ def CrocGetMsgs():
             os.write(HGBD,str(msg['author']['avatar'])+'\x00')
             msg_ofs += 64
             os.lseek(HGBD,msg_ofs,os.SEEK_SET)
-            os.write(HGBD,msg['content'].encode('utf8')+'\x00')
+            os.write(HGBD,msg['content'].encode('utf8')+attachments+'\x00')
             msg_ofs += 1024
         os.lseek(HGBD,0,os.SEEK_SET)
         os.write(HGBD,str(msgs_cnt))
