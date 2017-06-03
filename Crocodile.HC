@@ -23,9 +23,10 @@ U8 CROC_LMID[256];
 U8 CROC_TOKEN[256];
 U8 CROC_MSG[1024];
 
+U8 *av_buffer=CAlloc(4096);
+
 U0 CrocAvatar(CDoc *doc, U8 *author_id, U8 *avatar)
 {
-  U8 *av_buffer=CAlloc(4096);
   if (StrCmp(avatar,"")==0 || StrCmp(avatar,"None")==0) { Free(av_buffer); return; };
   U8 av_trunc[64];
   U8 av_file[64];
@@ -39,7 +40,7 @@ U0 CrocAvatar(CDoc *doc, U8 *author_id, U8 *avatar)
     StrCpy(HGBD_PARAM_BUF,author_id);
     StrCpy(HGBD_PARAM_BUF+64,avatar);
     WriteParamBuf;
-    HGExec(CROC_GETAVATAR);
+    HGExec(CROC_GETAVATAR,1);
     ReadParamBuf;
     size=Str2I64(HGBD_PARAM_BUF);
     BlkRead(HGBD,av_buffer,1,(size/BLK_SIZE)+1);
@@ -56,7 +57,6 @@ U0 CrocAvatar(CDoc *doc, U8 *author_id, U8 *avatar)
     DCDel(m);
   };
   DocBMP(doc,av_file);
-  Free(av_buffer);
 }
 
 U0 CrocUpdMsgs()
@@ -68,7 +68,7 @@ U0 CrocUpdMsgs()
   StrCpy(HGBD_PARAM_BUF,CROC_TOKEN);
   StrCpy(HGBD_PARAM_BUF+256,CROC_CHAN);
   WriteParamBuf;
-  HGExec(CROC_GETMSGS);
+  HGExec(CROC_GETMSGS,1);
   ReadParamBuf;
   msg_cnt=Str2I64(HGBD_PARAM_BUF);  
   BlkRead(HGBD,HGFS_BUF,1,4*msg_cnt);
@@ -95,6 +95,7 @@ U0 CrocSendMsg(U8 *msg)
   WriteParamBuf;
   BlkWrite(HGBD,msg,1,(StrLen(msg)/BLK_SIZE)+1);
   HGExec(CROC_SENDMSG);
+  FreeHGBD;
 }
 
 U0 CrocUpdChan()
@@ -113,6 +114,7 @@ U0 CrocUpdChan()
     StrCpy(CROC_LMID,HGBD_PARAM_BUF+128);
     CrocUpdMsgs;
   };
+  FreeHGBD;
 }
 
 U0 CrocUpdLoop()
