@@ -10,4 +10,4 @@ Add the following to your `/etc/hgbdd.conf`:
     }
 ```
 
-Placeholder
+[/tosg/](https://discord.gg/cUPnKc)
